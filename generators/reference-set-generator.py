@@ -69,6 +69,7 @@ def generateArtC3(iterationsMap, iteration, t):
 def generateCDef1(iterationsMap, iteration, t):
   msg = generateGenericMessage('EiffelCompositionDefinedEvent', t, '1.0', 'CDef1', iteration)
   linka(msg, findLatestPrevious(iterationsMap, iteration, 'CDef1'), 'previousVersions')
+  linka(msg, iterationsMap[iteration]['CLM2'], 'causes')
   linka(msg, iterationsMap[iteration]['ArtC2'], 'elements')
   linka(msg, iterationsMap[0]['ArtC3'], 'elements')
   return msg
@@ -304,8 +305,8 @@ def generateIterationZeroMessages(iterationsMap, t):
   iterationsMap[0]['EDef2'] = generateEDef1(iterationsMap, 0, t)
   iterationsMap[0]['ArtC3'] = generateArtC3(iterationsMap, 0, t)
   
-def generateIterationMessages(iterationsMap, iteration, t):
-  iterationsMap[iteration] = {}
+def generateSubSystemEvents(iterationsMap, iteration, t):
+  t += 100
   iterationsMap[iteration]['ArtC2'] = generateArtC2(iterationsMap, iteration, t)
   t += 30000
   iterationsMap[iteration]['ArtP2'] = generateArtP2(iterationsMap, iteration, t)
@@ -333,6 +334,8 @@ def generateIterationMessages(iterationsMap, iteration, t):
   iterationsMap[iteration]['ActF3'] = generateActF3(iterationsMap, iteration, t)
   t += 300
   iterationsMap[iteration]['CLM2'] = generateCLM2(iterationsMap, iteration, t)
+
+def generateSystemIntegrationEvents(iterationsMap, iteration, t):
   t += 300
   iterationsMap[iteration]['CDef1'] = generateCDef1(iterationsMap, iteration, t)
   t += 1000
@@ -369,7 +372,13 @@ def generateIterationMessages(iterationsMap, iteration, t):
   iterationsMap[iteration]['ActF2'] = generateActF2(iterationsMap, iteration, t)
   t += 2500
   iterationsMap[iteration]['CLM1'] = generateCLM1(iterationsMap, iteration, t)
-  
+
+def generateIterationMessages(iterationsMap, iteration, t):
+  iterationsMap[iteration] = {}
+  generateSubSystemEvents(iterationsMap, iteration, t)
+  if iterationsMap[iteration]['CLM2']['data']['value'] == 'SUCCESS':
+    generateSystemIntegrationEvents(iterationsMap, iteration, t)
+    
 def main(iterations):
   t = int(time.time() * 1000)
   iterationsMap = {}
