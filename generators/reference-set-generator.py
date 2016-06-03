@@ -74,6 +74,12 @@ def generateCDef1(iterationsMap, iteration, t):
   linka(msg, iterationsMap[0]["ArtC3"], "elements")
   return msg
   
+def generateCDef2(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelCompositionDefinedEvent", t, "1.0", "CDef2", iteration)
+  linka(msg, findLatestPrevious(iterationsMap, iteration, "CDef2"), "previousVersions")
+  link(msg, iterationsMap[iteration]["ActT4"], "context")
+  return msg
+  
 def generateArtC1(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelArtifactCreatedEvent", t, "1.0", "ArtC1", iteration)
   link(msg, iterationsMap[iteration]["CDef1"], "composition")
@@ -86,8 +92,10 @@ def generateArtC1(iterationsMap, iteration, t):
   
 def generateArtC2(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelArtifactCreatedEvent", t, "1.0", "ArtC2", iteration)
+  link(msg, iterationsMap[iteration]["CDef2"], "composition")
   link(msg, iterationsMap[0]["EDef2"], "environment")
   linka(msg, findLatestPrevious(iterationsMap, iteration, "ArtC2"), "previousVersions")
+  link(msg, iterationsMap[iteration]["ActT4"], "context")
   msg["data"]["gav"] = {"groupId": "com.mycompany.myproduct", "artifactId": "sub-system", "version": "1." + str(iteration) + ".0"}
   msg["data"]["fileInformation"] = [{"classifier": "", "extension": "jar"}]
   return msg
@@ -102,6 +110,7 @@ def generateArtP1(iterationsMap, iteration, t):
 def generateArtP2(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelArtifactPublishedEvent", t, "1.0", "ArtP2", iteration)
   link(msg, iterationsMap[iteration]["ArtC2"], "artifact")
+  link(msg, iterationsMap[iteration]["ActT4"], "context")
   msg["data"]["locations"] =  [{"type": "PLAIN", "uri": "https://myrepository.com/mySubSystemArtifact"}]
   return msg
   
@@ -123,6 +132,29 @@ def generateActF3(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelActivityFinishedEvent", t, "1.0", "ActF3", iteration)
   link(msg, iterationsMap[iteration]["ActT3"], "activityExecution")
   msg["data"]["outcome"] = {"conclusion": getOutcomeValuesFromVerdicts([iterationsMap[iteration]["TSF1"]], "SUCCESSFUL", "UNSUCCESSFUL")}
+  
+  return msg
+
+def generateActT4(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelActivityTriggeredEvent", t, "1.0", "ActT4", iteration)
+  msg["data"]["name"] = "Act4"
+  msg["data"]["category"] = "Sub-system Build Activity"
+  msg["data"]["triggers"] = [{"type": "EIFFEL_EVENT"}],
+  msg["data"]["executionType"] = "AUTOMATED"
+  return msg
+  
+def generateActS4(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelActivityStartedEvent", t, "1.0", "ActS4", iteration)
+  link(msg, iterationsMap[iteration]["ActT4"], "activityExecution")
+  return msg
+  
+def generateActF4(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelActivityFinishedEvent", t, "1.0", "ActF4", iteration)
+  link(msg, iterationsMap[iteration]["ActT4"], "activityExecution")
+  if "ArtC2" in iterationsMap[iteration]:
+    msg["data"]["outcome"] = {"conclusion": "SUCCESSFUL"}
+  else:
+    msg["data"]["outcome"] = {"conclusion": "UNSUCCESSFUL"}
   
   return msg
 
@@ -305,11 +337,22 @@ def generateIterationZeroMessages(iterationsMap, t):
   iterationsMap[0]["EDef2"] = generateEDef1(iterationsMap, 0, t)
   iterationsMap[0]["ArtC3"] = generateArtC3(iterationsMap, 0, t)
   
-def generateSubSystemEvents(iterationsMap, iteration, t):
+def generateSubSystemBuildEvents(iterationsMap, iteration, t):
   t += 100
-  iterationsMap[iteration]["ArtC2"] = generateArtC2(iterationsMap, iteration, t)
-  t += 30000
-  iterationsMap[iteration]["ArtP2"] = generateArtP2(iterationsMap, iteration, t)
+  iterationsMap[iteration]["ActT4"] = generateActT4(iterationsMap, iteration, t)
+  t += 1
+  iterationsMap[iteration]["ActS4"] = generateActS4(iterationsMap, iteration, t)
+  t += 100
+  iterationsMap[iteration]["CDef2"] = generateCDef2(iterationsMap, iteration, t)
+  if random.random() < 0.95:
+    t += 100
+    iterationsMap[iteration]["ArtC2"] = generateArtC2(iterationsMap, iteration, t)
+    t += 30000
+    iterationsMap[iteration]["ArtP2"] = generateArtP2(iterationsMap, iteration, t)
+  t += 50
+  iterationsMap[iteration]["ActF4"] = generateActF4(iterationsMap, iteration, t)
+
+def generateSubSystemTestEvents(iterationsMap, iteration, t):
   t += 2000
   iterationsMap[iteration]["ActT3"] = generateActT3(iterationsMap, iteration, t)
   t += 3
@@ -375,9 +418,12 @@ def generateSystemIntegrationEvents(iterationsMap, iteration, t):
 
 def generateIterationMessages(iterationsMap, iteration, t):
   iterationsMap[iteration] = {}
-  generateSubSystemEvents(iterationsMap, iteration, t)
-  if iterationsMap[iteration]["CLM2"]["data"]["value"] == "SUCCESS":
-    generateSystemIntegrationEvents(iterationsMap, iteration, t)
+  generateSubSystemBuildEvents(iterationsMap, iteration, t)
+  
+  if "ArtC2" in iterationsMap[iteration]:
+    generateSubSystemTestEvents(iterationsMap, iteration, t)
+    if iterationsMap[iteration]["CLM2"]["data"]["value"] == "SUCCESS":
+      generateSystemIntegrationEvents(iterationsMap, iteration, t)
     
 def main(iterations):
   t = int(time.time() * 1000)
