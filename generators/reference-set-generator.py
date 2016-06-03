@@ -52,6 +52,27 @@ def getOutcomeValuesFromVerdicts(testCaseFinishedEventsArray, positiveName, nega
   
   return positiveName
     
+def generateSCC1(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelSourceChangeCreatedEvent", t, "1.0", "SCC1", iteration)
+  link(msg, findLatestPrevious(iterationsMap, iteration, "SCS1"), "base")
+
+  msg["data"]["gitIdentifier"] = {"sha1": "fd090b60a4aedc5161da9c035a49b14a319829c5", "branch": "topic-branch-" + str(iteration), "repoName": "myRepo", "repoUri": "https://repo.com"}
+  msg["data"]["author"] = {"name": "John Doe", "email": "john.doe@company.com", "id": "johnxxx", "group": "Team Gophers"}
+  msg["data"]["change"] = {"files": "https://filelist.com/" + str(iteration), "insertions": random.randint(10, 500), "deletions": random.randint(10, 500)}
+  
+  return msg
+  
+def generateSCS1(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelSourceChangeSubmittedEvent", t, "1.0", "SCS1", iteration)
+  linka(msg, findLatestPrevious(iterationsMap, iteration, "SCS1"), "previousVersions")
+  if "SCC1" in iterationsMap[iteration]:
+    link(msg, iterationsMap[iteration]["SCC1"], "change")
+    
+  msg["data"]["gitIdentifier"] = {"sha1": "fd090b60a4aedc5161da9c035a49b14a319829b4", "branch": "master", "repoName": "myRepo", "repoUri": "https://repo.com"}
+  msg["data"]["submitter"] = {"name": "John Doe", "email": "john.doe@company.com", "id": "johnxxx", "group": "Team Gophers"}
+  
+  return msg
+  
 def generateEDef1(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelEnvironmentDefinedEvent", t, "1.0", "EDef1", iteration)
   return msg
@@ -78,6 +99,14 @@ def generateCDef2(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelCompositionDefinedEvent", t, "1.0", "CDef2", iteration)
   linka(msg, findLatestPrevious(iterationsMap, iteration, "CDef2"), "previousVersions")
   link(msg, iterationsMap[iteration]["ActT4"], "context")
+  linka(msg, findLatestPrevious(iterationsMap, iteration + 1, "ArtCC1"), "elements")
+  linka(msg, findLatestPrevious(iterationsMap, iteration + 1, "ArtCC2"), "elements")
+  linka(msg, findLatestPrevious(iterationsMap, iteration + 1, "ArtCC3"), "elements")
+  return msg
+  
+def generateCDef3(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelCompositionDefinedEvent", t, "1.0", "CDef3", iteration)
+  linka(msg, findLatestPrevious(iterationsMap, iteration, "CDef3"), "previousVersions")
   return msg
   
 def generateArtC1(iterationsMap, iteration, t):
@@ -97,6 +126,33 @@ def generateArtC2(iterationsMap, iteration, t):
   linka(msg, findLatestPrevious(iterationsMap, iteration, "ArtC2"), "previousVersions")
   link(msg, iterationsMap[iteration]["ActT4"], "context")
   msg["data"]["gav"] = {"groupId": "com.mycompany.myproduct", "artifactId": "sub-system", "version": "1." + str(iteration) + ".0"}
+  msg["data"]["fileInformation"] = [{"classifier": "", "extension": "jar"}]
+  return msg
+  
+def generateArtCC1(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelArtifactCreatedEvent", t, "1.0", "ArtCC1", iteration)
+  link(msg, iterationsMap[iteration]["CDef3"], "composition")
+  linka(msg, iterationsMap[iteration]["CDef3"], "causes")
+  linka(msg, findLatestPrevious(iterationsMap, iteration, "ArtCC1"), "previousVersions")
+  msg["data"]["gav"] = {"groupId": "com.mycompany.myproduct", "artifactId": "component-1", "version": "1." + str(iteration) + ".0"}
+  msg["data"]["fileInformation"] = [{"classifier": "", "extension": "jar"}]
+  return msg
+  
+def generateArtCC2(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelArtifactCreatedEvent", t, "1.0", "ArtCC2", iteration)
+  link(msg, iterationsMap[iteration]["CDef3"], "composition")
+  linka(msg, iterationsMap[iteration]["CDef3"], "causes")
+  linka(msg, findLatestPrevious(iterationsMap, iteration, "ArtCC2"), "previousVersions")
+  msg["data"]["gav"] = {"groupId": "com.mycompany.myproduct", "artifactId": "component-2", "version": "1." + str(iteration) + ".0"}
+  msg["data"]["fileInformation"] = [{"classifier": "", "extension": "jar"}]
+  return msg
+  
+def generateArtCC3(iterationsMap, iteration, t):
+  msg = generateGenericMessage("EiffelArtifactCreatedEvent", t, "1.0", "ArtCC3", iteration)
+  link(msg, iterationsMap[iteration]["CDef3"], "composition")
+  linka(msg, iterationsMap[iteration]["CDef3"], "causes")
+  linka(msg, findLatestPrevious(iterationsMap, iteration, "ArtCC3"), "previousVersions")
+  msg["data"]["gav"] = {"groupId": "com.mycompany.myproduct", "artifactId": "component-3", "version": "1." + str(iteration) + ".0"}
   msg["data"]["fileInformation"] = [{"classifier": "", "extension": "jar"}]
   return msg
   
@@ -137,6 +193,12 @@ def generateActF3(iterationsMap, iteration, t):
 
 def generateActT4(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelActivityTriggeredEvent", t, "1.0", "ActT4", iteration)
+  if "ArtCC1" in iterationsMap[iteration]:
+    linka(msg,  iterationsMap[iteration]["ArtCC1"], "causes")
+  if "ArtCC2" in iterationsMap[iteration]:
+    linka(msg,  iterationsMap[iteration]["ArtCC2"], "causes")
+  if "ArtCC3" in iterationsMap[iteration]:
+    linka(msg,  iterationsMap[iteration]["ArtCC3"], "causes")
   msg["data"]["name"] = "Act4"
   msg["data"]["category"] = "Sub-system Build Activity"
   msg["data"]["triggers"] = [{"type": "EIFFEL_EVENT"}],
@@ -333,10 +395,34 @@ def buildMsgArrayFromIterationMap(iterationMap):
   
 def generateIterationZeroMessages(iterationsMap, t):
   iterationsMap[0] = {}
+  iterationsMap[0]["SCS1"] = generateSCS1(iterationsMap, 0, t)
   iterationsMap[0]["EDef1"] = generateEDef1(iterationsMap, 0, t)
   iterationsMap[0]["EDef2"] = generateEDef1(iterationsMap, 0, t)
   iterationsMap[0]["ArtC3"] = generateArtC3(iterationsMap, 0, t)
+  iterationsMap[0]["CDef3"] = generateCDef3(iterationsMap, 0, t)
+  iterationsMap[0]["ArtCC1"] = generateArtCC1(iterationsMap, 0, t)
+  iterationsMap[0]["ArtCC2"] = generateArtCC2(iterationsMap, 0, t)
+  iterationsMap[0]["ArtCC3"] = generateArtCC3(iterationsMap, 0, t)
   
+def generateComponentBuildEvents(iterationsMap, iteration, t):
+  t += 1
+  iterationsMap[iteration]["SCC1"] = generateSCC1(iterationsMap, iteration, t)
+  t += 1
+  iterationsMap[iteration]["SCS1"] = generateSCS1(iterationsMap, iteration, t)
+  t += 100
+  iterationsMap[iteration]["CDef3"] = generateCDef3(iterationsMap, iteration, t)
+  
+  if random.random() < 0.5:
+    t += 200000
+    iterationsMap[iteration]["ArtCC1"] = generateArtCC1(iterationsMap, iteration, t)
+  
+  if random.random() < 0.5:
+    t += 35000
+    iterationsMap[iteration]["ArtCC2"] = generateArtCC2(iterationsMap, iteration, t)
+  
+  t += 1000
+  iterationsMap[iteration]["ArtCC3"] = generateArtCC3(iterationsMap, iteration, t)
+
 def generateSubSystemBuildEvents(iterationsMap, iteration, t):
   t += 100
   iterationsMap[iteration]["ActT4"] = generateActT4(iterationsMap, iteration, t)
@@ -344,11 +430,13 @@ def generateSubSystemBuildEvents(iterationsMap, iteration, t):
   iterationsMap[iteration]["ActS4"] = generateActS4(iterationsMap, iteration, t)
   t += 100
   iterationsMap[iteration]["CDef2"] = generateCDef2(iterationsMap, iteration, t)
+  
   if random.random() < 0.95:
     t += 100
     iterationsMap[iteration]["ArtC2"] = generateArtC2(iterationsMap, iteration, t)
     t += 30000
     iterationsMap[iteration]["ArtP2"] = generateArtP2(iterationsMap, iteration, t)
+  
   t += 50
   iterationsMap[iteration]["ActF4"] = generateActF4(iterationsMap, iteration, t)
 
@@ -418,6 +506,7 @@ def generateSystemIntegrationEvents(iterationsMap, iteration, t):
 
 def generateIterationMessages(iterationsMap, iteration, t):
   iterationsMap[iteration] = {}
+  generateComponentBuildEvents(iterationsMap, iteration, t)
   generateSubSystemBuildEvents(iterationsMap, iteration, t)
   
   if "ArtC2" in iterationsMap[iteration]:
