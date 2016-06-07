@@ -360,7 +360,7 @@ def generateTSF1(iterationsMap, iteration, t):
   return msg
 
 def generateCLM1(iterationsMap, iteration, t):
-  msg = generateGenericMessage("EiffelConfidenceLevelModified", t, "1.0", "CLM1", iteration)
+  msg = generateGenericMessage("EiffelConfidenceLevelModifiedEvent", t, "1.0", "CLM1", iteration)
   linka(msg, iterationsMap[iteration]["ArtC1"], "subjects")
   linka(msg, iterationsMap[iteration]["TCF1"], "causes")
   linka(msg, iterationsMap[iteration]["TCF2"], "causes")
@@ -371,7 +371,7 @@ def generateCLM1(iterationsMap, iteration, t):
   return msg
   
 def generateCLM2(iterationsMap, iteration, t):
-  msg = generateGenericMessage("EiffelConfidenceLevelModified", t, "1.0", "CLM2", iteration)
+  msg = generateGenericMessage("EiffelConfidenceLevelModifiedEvent", t, "1.0", "CLM2", iteration)
   msg["data"]["name"] = "readyForSystemIntegration"
   msg["data"]["value"] = getOutcomeValuesFromVerdicts([iterationsMap[iteration]["TSF1"]], "SUCCESS", "FAILURE")
   linka(msg, iterationsMap[iteration]["TSF1"], "causes")
