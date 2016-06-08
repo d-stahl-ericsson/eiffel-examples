@@ -31,7 +31,7 @@
         "type": "BUG",
         "tracker": "JIRA",
         "id": "JIRA-1234",
-        "uri": "http://jira.company.com/browse/JIRA-1234"
+        "uri": "http://jira.company.com/browse/JIRA-1234",
         "transition": "COMPLETE"
       }
     ]
