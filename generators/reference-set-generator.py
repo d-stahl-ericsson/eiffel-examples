@@ -55,7 +55,7 @@ def generateSCC1(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelSourceChangeCreatedEvent", t, "1.0", "SCC1", iteration)
   link(msg, findLatestPrevious(iterationsMap, iteration, "SCS1"), "base")
 
-  msg["data"]["gitIdentifier"] = {"sha1": "fd090b60a4aedc5161da9c035a49b14a319829c5", "branch": "topic-branch-" + str(iteration), "repoName": "myRepo", "repoUri": "https://repo.com"}
+  msg["data"]["gitIdentifier"] = {"commitId": "fd090b60a4aedc5161da9c035a49b14a319829c5", "branch": "topic-branch-" + str(iteration), "repoName": "myRepo", "repoUri": "https://repo.com"}
   msg["data"]["author"] = {"name": "John Doe", "email": "john.doe@company.com", "id": "johnxxx", "group": "Team Gophers"}
   msg["data"]["change"] = {"files": "https://filelist.com/" + str(iteration), "insertions": random.randint(10, 500), "deletions": random.randint(10, 500)}
 
@@ -67,7 +67,7 @@ def generateSCS1(iterationsMap, iteration, t):
   if "SCC1" in iterationsMap[iteration]:
     link(msg, iterationsMap[iteration]["SCC1"], "change")
 
-  msg["data"]["gitIdentifier"] = {"sha1": "fd090b60a4aedc5161da9c035a49b14a319829b4", "branch": "master", "repoName": "myRepo", "repoUri": "https://repo.com"}
+  msg["data"]["gitIdentifier"] = {"commitId": "fd090b60a4aedc5161da9c035a49b14a319829b4", "branch": "master", "repoName": "myRepo", "repoUri": "https://repo.com"}
   msg["data"]["submitter"] = {"name": "John Doe", "email": "john.doe@company.com", "id": "johnxxx", "group": "Team Gophers"}
 
   return msg
