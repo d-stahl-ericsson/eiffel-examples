@@ -19,13 +19,11 @@
       "id": "johndoe",
       "group": "Team Gophers"
     },
-    "change": [
-      {
-        "files": "https://company.com/changes/fd090b60a4aedc5161da9c035a49b14a319829b4",
-        "insertions": 173,
-        "deletions": 79
-      }
-    ],
+    "change": {
+      "files": "https://company.com/changes/fd090b60a4aedc5161da9c035a49b14a319829b4",
+      "insertions": 173,
+      "deletions": 79
+    },
     "issues": [
       {
         "type": "BUG",
