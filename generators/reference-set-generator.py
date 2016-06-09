@@ -106,6 +106,7 @@ def generateCDef2(iterationsMap, iteration, t):
 def generateCDef3(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelCompositionDefinedEvent", t, "1.0", "CDef3", iteration)
   linka(msg, findLatestPrevious(iterationsMap, iteration, "CDef3"), "previousVersions")
+  linka(msg, iterationsMap[iteration]["SCS1"], "elements")
   return msg
 
 def generateArtC1(iterationsMap, iteration, t):
@@ -395,13 +396,22 @@ def buildMsgArrayFromIterationMap(iterationMap):
 def generateIterationZeroMessages(iterationsMap, t):
   iterationsMap[0] = {}
   iterationsMap[0]["SCS1"] = generateSCS1(iterationsMap, 0, t)
+  t += 1
   iterationsMap[0]["EDef1"] = generateEDef1(iterationsMap, 0, t)
+  t += 1
   iterationsMap[0]["EDef2"] = generateEDef2(iterationsMap, 0, t)
+  t += 1
   iterationsMap[0]["ArtC3"] = generateArtC3(iterationsMap, 0, t)
+  t += 1
   iterationsMap[0]["CDef3"] = generateCDef3(iterationsMap, 0, t)
+  t += 1
   iterationsMap[0]["ArtCC1"] = generateArtCC1(iterationsMap, 0, t)
+  t += 1
   iterationsMap[0]["ArtCC2"] = generateArtCC2(iterationsMap, 0, t)
+  t += 1
   iterationsMap[0]["ArtCC3"] = generateArtCC3(iterationsMap, 0, t)
+
+  return t
 
 def generateComponentBuildEvents(iterationsMap, iteration, t):
   t += 1
@@ -422,6 +432,8 @@ def generateComponentBuildEvents(iterationsMap, iteration, t):
   t += 1000
   iterationsMap[iteration]["ArtCC3"] = generateArtCC3(iterationsMap, iteration, t)
 
+  return t
+
 def generateSubSystemBuildEvents(iterationsMap, iteration, t):
   t += 100
   iterationsMap[iteration]["ActT4"] = generateActT4(iterationsMap, iteration, t)
@@ -438,6 +450,8 @@ def generateSubSystemBuildEvents(iterationsMap, iteration, t):
 
   t += 50
   iterationsMap[iteration]["ActF4"] = generateActF4(iterationsMap, iteration, t)
+
+  return t
 
 def generateSubSystemTestEvents(iterationsMap, iteration, t):
   t += 2000
@@ -464,6 +478,8 @@ def generateSubSystemTestEvents(iterationsMap, iteration, t):
   iterationsMap[iteration]["ActF3"] = generateActF3(iterationsMap, iteration, t)
   t += 300
   iterationsMap[iteration]["CLM2"] = generateCLM2(iterationsMap, iteration, t)
+
+  return t
 
 def generateSystemIntegrationEvents(iterationsMap, iteration, t):
   t += 300
@@ -503,25 +519,30 @@ def generateSystemIntegrationEvents(iterationsMap, iteration, t):
   t += 2500
   iterationsMap[iteration]["CLM1"] = generateCLM1(iterationsMap, iteration, t)
 
+  return t
+
 def generateIterationMessages(iterationsMap, iteration, t):
   iterationsMap[iteration] = {}
-  generateComponentBuildEvents(iterationsMap, iteration, t)
-  generateSubSystemBuildEvents(iterationsMap, iteration, t)
+  t = generateComponentBuildEvents(iterationsMap, iteration, t)
+  t = generateSubSystemBuildEvents(iterationsMap, iteration, t)
 
   if "ArtC2" in iterationsMap[iteration]:
-    generateSubSystemTestEvents(iterationsMap, iteration, t)
+    t = generateSubSystemTestEvents(iterationsMap, iteration, t)
     if iterationsMap[iteration]["CLM2"]["data"]["value"] == "SUCCESS":
-      generateSystemIntegrationEvents(iterationsMap, iteration, t)
+      t = generateSystemIntegrationEvents(iterationsMap, iteration, t)
+
+  return t
 
 def main(iterations):
   t = int(time.time() * 1000)
+
   iterationsMap = {}
 
-  generateIterationZeroMessages(iterationsMap, t)
+  t = generateIterationZeroMessages(iterationsMap, t)
 
   for iteration in range(1, iterations + 1):
     t += 10000
-    generateIterationMessages(iterationsMap, iteration, t)
+    t = generateIterationMessages(iterationsMap, iteration, t)
 
   out = buildMsgArrayFromiterationsMap(iterationsMap)
 
