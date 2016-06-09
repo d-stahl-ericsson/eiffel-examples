@@ -106,7 +106,7 @@ def generateCDef2(iterationsMap, iteration, t):
 def generateCDef3(iterationsMap, iteration, t):
   msg = generateGenericMessage("EiffelCompositionDefinedEvent", t, "1.0", "CDef3", iteration)
   linka(msg, findLatestPrevious(iterationsMap, iteration, "CDef3"), "previousVersions")
-  linka(msg, findLatestPrevious(iterationsMap, iteration + 1, "SCS1"), "elements")
+  linka(msg, iterationsMap[iteration]["SCS1"], "elements")
   return msg
 
 def generateArtC1(iterationsMap, iteration, t):
