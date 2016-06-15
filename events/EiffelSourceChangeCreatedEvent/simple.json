@@ -22,7 +22,10 @@
     "change": {
       "files": "https://company.com/changes/fd090b60a4aedc5161da9c035a49b14a319829b4",
       "insertions": 173,
-      "deletions": 79
+      "deletions": 79,
+      "tracker": "GitHub",
+      "details": "https://github.com/johndoe/myPrivateRepo/commit/fd090b60a4aedc5161da9c035a49b14a319829b4",
+      "id": "42"
     },
     "issues": [
       {
